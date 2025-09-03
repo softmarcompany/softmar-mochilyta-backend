@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",                   // Más moderno y compatible con Lambda
+    "module": "CommonJS",                 // Lambda requiere CommonJS
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,                 // Evita errores con tipos de terceros
+    "outDir": "./dist",                   // Salida a carpeta dist
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": ["src/**/*"]
+}

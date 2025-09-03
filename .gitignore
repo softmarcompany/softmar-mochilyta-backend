@@ -1,0 +1,16 @@
+# Node modules
+node_modules/
+
+# Variables de entorno
+.env
+
+# Archivos de logs
+*.log
+
+# Archivos de compilación
+dist/
+build/
+
+# Archivos temporales
+*.tmp
+*.swp
