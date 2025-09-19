@@ -1,15 +1,9 @@
 import { PutCommand } from "@aws-sdk/lib-dynamodb";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-import {
-  RekognitionClient,
-  DetectLabelsCommand,
-  DetectFacesCommand
-} from "@aws-sdk/client-rekognition";
 import axios from "axios";
 import ddb from "../../datos/db";
 
 const s3 = new S3Client({ region: "us-east-1" });
-const rek = new RekognitionClient({ region: "us-east-1" });
 const BUCKET_NAME = "softmar-mochilyta-landing";
 
 export const handler = async (event: any) => {
@@ -27,7 +21,6 @@ export const handler = async (event: any) => {
     "Access-Control-Allow-Methods": "OPTIONS,POST,GET",
   };
 
-  // ✅ Respuesta para preflight CORS
   if (event.requestContext?.http?.method === "OPTIONS") {
     return {
       statusCode: 200,
@@ -50,64 +43,32 @@ export const handler = async (event: any) => {
         });
         const buffer = Buffer.from(response.data);
 
-        // 🔹 Paso 1: Detectar rostros reales
-        const facesResult = await rek.send(
-          new DetectFacesCommand({
-            Image: { Bytes: buffer },
-            Attributes: ["DEFAULT"],
+        const fileName = `images/lugares_turisticos/${normalizarTexto(
+          data.zona_geografica.pais
+        )}/${normalizarTexto(data.zona_geografica.region)}/${normalizarTexto(
+          data.zona_geografica.provincia
+        )}/${normalizarTexto(data.zona_geografica.distrito)}/${normalizarTexto(
+          data.zona_geografica.lugar["es"]
+        )}_${i}.jpg`;
+
+        await s3.send(
+          new PutObjectCommand({
+            Bucket: BUCKET_NAME,
+            Key: fileName,
+            Body: buffer,
+            ContentType: "image/jpeg",
           })
         );
 
-        const hayRostro = facesResult.FaceDetails && facesResult.FaceDetails.length > 0;
-
-        // 🔹 Paso 2: Verificar etiquetas para "Person"
-        const labelsResult = await rek.send(
-          new DetectLabelsCommand({
-            Image: { Bytes: buffer },
-            MaxLabels: 10,
-            MinConfidence: 70,
-          })
-        );
-
-        const personaLabel = labelsResult.Labels?.find(
-          (label) => label.Name?.toLowerCase() === "person"
-        );
-        const confianzaPersona = personaLabel?.Confidence || 0;
-
-        // 🔹 Paso 3: Guardar imagen solo si NO hay rostros
-        // y la confianza de "Person" es baja (<85%)
-        if (!hayRostro && confianzaPersona < 85) {
-          const fileName = `images/lugares_turisticos/${normalizarTexto(
-            data.zona_geografica.pais
-          )}/${normalizarTexto(data.zona_geografica.region)}/${normalizarTexto(
-            data.zona_geografica.provincia
-          )}/${normalizarTexto(data.zona_geografica.distrito)}/${normalizarTexto(
-            data.zona_geografica.Lugar["es"]
-          )}_${i}.jpg`;
-
-          await s3.send(
-            new PutObjectCommand({
-              Bucket: BUCKET_NAME,
-              Key: fileName,
-              Body: buffer,
-              ContentType: "image/jpeg",
-            })
-          );
-
-          nuevasImagenes.push({
-            img: `https://${BUCKET_NAME}.s3.amazonaws.com/${fileName}`,
-          });
-        } else {
-          console.log(
-            `⚠️ Imagen descartada: posible persona detectada (Rostro: ${hayRostro}, Confianza Person: ${confianzaPersona}%)`
-          );
-        }
+        nuevasImagenes.push({
+          img: `https://${BUCKET_NAME}.s3.amazonaws.com/${fileName}`,
+        });
       }
 
-      data.imagen = nuevasImagenes; // ✅ Solo guardamos imágenes válidas
+      data.imagen = nuevasImagenes;
     }
 
-    // 🔹 Guardar en DynamoDB
+    // Guardar en DynamoDB
     const params = { TableName: "softmar_mochilyta_lugares", Item: data };
     await ddb.send(new PutCommand(params));
 
