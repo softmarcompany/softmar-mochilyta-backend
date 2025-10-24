@@ -2,7 +2,8 @@ import { PutCommand } from "@aws-sdk/lib-dynamodb";
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import axios from "axios";
 import ddb from "../../datos/db";
-
+import dotenv from "dotenv";
+dotenv.config(); // Cargar variables del .env
 const s3 = new S3Client({ region: "us-east-1" });
 const BUCKET_NAME = "softmar-mochilyta-landing";
 
