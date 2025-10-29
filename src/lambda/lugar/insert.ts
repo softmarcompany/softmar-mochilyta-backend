@@ -31,10 +31,19 @@ export const handler = async (event: any) => {
   }
 
   try {
-    const data = typeof event.body === "string" ? JSON.parse(event.body) : event.body;
+    const data =
+      typeof event.body === "string" ? JSON.parse(event.body) : event.body;
+      
+    const fileName_root = `images/lugares_turisticos/${normalizarTexto(
+        data.zona_geografica.pais
+      )}/${normalizarTexto(data.zona_geografica.region)}/${normalizarTexto(
+        data.zona_geografica.provincia
+      )}/${normalizarTexto(data.zona_geografica.distrito)}`;
 
     if (Array.isArray(data.imagen) && data.imagen.length > 0) {
       const nuevasImagenes: { img: string }[] = [];
+
+  
 
       for (let i = 0; i < data.imagen.length; i++) {
         const imageUrl = data.imagen[i].img;
@@ -44,11 +53,7 @@ export const handler = async (event: any) => {
         });
         const buffer = Buffer.from(response.data);
 
-        const fileName = `images/lugares_turisticos/${normalizarTexto(
-          data.zona_geografica.pais
-        )}/${normalizarTexto(data.zona_geografica.region)}/${normalizarTexto(
-          data.zona_geografica.provincia
-        )}/${normalizarTexto(data.zona_geografica.distrito)}/${normalizarTexto(
+        const fileName = `${fileName_root}/${normalizarTexto(
           data.zona_geografica.lugar["es"]
         )}_${i}.jpg`;
 
@@ -79,6 +84,7 @@ export const handler = async (event: any) => {
       body: JSON.stringify({
         message: "✅ Lugar insertado correctamente",
         data,
+        fileName_root
       }),
     };
   } catch (err) {
