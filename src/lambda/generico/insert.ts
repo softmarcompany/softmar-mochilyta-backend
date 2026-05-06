@@ -11,7 +11,7 @@ export const handler = async (event: any) => {
 
 
   // ✅ Headers CORS abiertos para cualquier origen
-  const corsHeaders = {
+  const corsHeaders = { 
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "Content-Type,Authorization",
     "Access-Control-Allow-Methods": "OPTIONS,POST,GET"
