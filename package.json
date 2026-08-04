@@ -12,6 +12,7 @@
   "devDependencies": {
     "@types/aws-lambda": "^8.10.152",
     "@types/node": "^24.1.0",
+    "@types/turf": "^3.5.32",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2"
   },
@@ -19,10 +20,14 @@
     "@aws-sdk/client-dynamodb": "^3.858.0",
     "@aws-sdk/client-s3": "^3.873.0",
     "@aws-sdk/lib-dynamodb": "^3.858.0",
+    "@turf/boolean-point-in-polygon": "^7.3.0",
+    "@turf/helpers": "^7.3.0",
+    "@turf/turf": "^7.3.0",
     "aws-lambda": "^1.0.7",
     "aws-sdk": "^2.1692.0",
     "axios": "^1.11.0",
-    "canvas": "^3.2.0",
-    "dotenv": "^17.2.1"
+    "dotenv": "^17.2.1",
+    "h3-js": "^4.3.0",
+    "turf": "^3.0.14"
   }
 }

@@ -31,7 +31,14 @@ export const handler = async (event: any) => {
   }
 
   try {
-    const data = typeof event.body === "string" ? JSON.parse(event.body) : event.body;
+    const data =
+      typeof event.body === "string" ? JSON.parse(event.body) : event.body;
+
+    const fileName_root = `images/lugares_turisticos/${normalizarTexto(
+      data.zona_geografica.pais
+    )}/${normalizarTexto(data.zona_geografica.region)}/${normalizarTexto(
+      data.zona_geografica.provincia
+    )}/${normalizarTexto(data.zona_geografica.distrito)}`;
 
     if (Array.isArray(data.imagen) && data.imagen.length > 0) {
       const nuevasImagenes: { img: string }[] = [];
@@ -44,11 +51,7 @@ export const handler = async (event: any) => {
         });
         const buffer = Buffer.from(response.data);
 
-        const fileName = `images/lugares_turisticos/${normalizarTexto(
-          data.zona_geografica.pais
-        )}/${normalizarTexto(data.zona_geografica.region)}/${normalizarTexto(
-          data.zona_geografica.provincia
-        )}/${normalizarTexto(data.zona_geografica.distrito)}/${normalizarTexto(
+        const fileName = `${fileName_root}/${normalizarTexto(
           data.zona_geografica.lugar["es"]
         )}_${i}.jpg`;
 
@@ -68,10 +71,19 @@ export const handler = async (event: any) => {
 
       data.imagen = nuevasImagenes;
     }
+    const data1 = {
+      ...data,
+      id_lugar: data.id_lugar.split(":").slice(0, -1).join(":"),
+    };
+    const data2 = { id_configuracion: "catalogo_tipo_lugar", id_sub_configuracion:"data.zona_geografica.tipoLugar" };
 
     // Guardar en DynamoDB
-    const params = { TableName: "softmar_mochilyta_lugares", Item: data };
-    await ddb.send(new PutCommand(params));
+    const params1 = { TableName: "softmar_mochilyta_lugares", Item: data };
+    await ddb.send(new PutCommand(params1));
+    const params2 = { TableName: "softmar_mochilyta_lugares", Item: data1 };
+    await ddb.send(new PutCommand(params2));
+    const params3 = { TableName: "softmar_mochilyta_lugares", Item: data2 };
+    await ddb.send(new PutCommand(params3));
 
     return {
       statusCode: 200,
@@ -79,6 +91,7 @@ export const handler = async (event: any) => {
       body: JSON.stringify({
         message: "✅ Lugar insertado correctamente",
         data,
+        fileName_root,
       }),
     };
   } catch (err) {
